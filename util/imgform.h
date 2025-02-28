@@ -16,4 +16,22 @@ struct img {
         struct pixel *data;
 };
 
+struct normal_col {
+        float r;
+        float g;
+        float b;
+};
+
+struct normal_col normalise(struct pixel col);
+
+void minmax(struct normal_col col, float *min, float *max);
+
+float hue(struct pixel col); 
+
+float saturation(struct pixel col);
+
+float luminosity(struct pixel col);
+
+struct pixel HSLtoRGB(float h, float s, float l);
+
 #endif
