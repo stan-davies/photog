@@ -19,4 +19,11 @@ void translate_process(struct img *i) {
 }
 
 float transform_hue(float h) {
+        float x = 2.4337f * h - 0.7f;
+        float f = -1.f * powf(x, 5.f); 
+        f      +=  2.f * powf(x, 4.f);
+        f      += 0.5f * powf(x, 3.f);
+        f      += -2.f * powf(x, 2.f);
+        return f + 1.f;
+}
 

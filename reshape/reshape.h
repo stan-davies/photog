@@ -2,6 +2,8 @@
 #define RESHAPE_H
 
 #include <math.h>
+#include <stdlib.h>
+#include <time.h>
 #include "util/imgform.h"
 
 #define MAX_SQ 100

@@ -34,9 +34,11 @@ void make_squares(struct img i, struct square **shapes, int *s) {
         int          p   = 0;
         float        sat = 0.f;
         struct pixel col;
+
+        srand(time(NULL));
         
         while (p < i.w * i.h && *s < MAX_SQ) {
-                p += random(5, 50);
+                p += rand() % 45 + 5; 
 
                 col = i.data[p];
                 sat = saturation(col);
