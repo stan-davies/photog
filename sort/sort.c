@@ -21,11 +21,16 @@ void sort_process(struct image *i) {
 
                 struct px_refs *chunk = calloc(p_max, sizeof(struct px_ref)); 
 
-                // sort
+                for (int p = 0; p < p_max; ++p) {
+                        chunk[p] = refs[r * i->w + acc + p];
+                }
+
+                sort_pixels(&chunk, p_max);
 
                 for (int p = 0; p < p_max; ++p) {
                         refs[r * i->w + acc + p] = chunk[p];
                 }
+                
                 free(chunk);
                 chunk = NULL;
         }
@@ -40,4 +45,20 @@ void sort_process(struct image *i) {
         }
 
         *i = new_i;
+}
+
+void sort_pixels(struct px_ref **chunk, int pxs) {
+        struct px_ref tmp;
+        int swap_made;
+        do {
+                swap_made = FALSE;
+                for (int p = 0; p < pxs - 1; ++p) {
+                        if ((*chunk)[p].lum > (*chunk)[p + 1].lum) {
+                                tmp = (*chunk)[p];
+                                (*chunk)[p] = (*chunk)[p + 1];
+                                (*chunk)[p + 1] = tmp;
+                                swap_made = TRUE;
+                        }
+                }
+        } while (!swap_made);
 }
