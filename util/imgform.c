@@ -1,4 +1,4 @@
-#include "util/imgform.h"
+#include "imgform.h"
 
 struct normal_col normalise(struct pixel col) {
         struct normal_col norm;
@@ -11,13 +11,24 @@ struct normal_col normalise(struct pixel col) {
 void minmax(struct normal_col col, float *min, float *max) {
         *min = 1.f;
         *max = 0.f;
-        for (int i = 0; i < 3; ++i) {
-                if ((&col)[i] < *min) {
-                        *min = (&col)[i];
-                }
-                if ((&col)[i] > *max) {
-                        *max = (&col)[i]; 
-                }
+        if (col.r < *min) {
+                *min = col.r;
+        }
+        if (col.g < *min) {
+                *min = col.g;
+        }
+        if (col.b < *min) {
+                *min = col.b;
+        }
+
+        if (col.r > *max) {
+                *max = col.r;
+        }
+        if (col.g > *max) {
+                *max = col.g;
+        }
+        if (col.b > *max) {
+                *max = col.b;
         }
 }
 
@@ -28,7 +39,7 @@ float hue(struct pixel col) {
         float term;
         float min;
         float max;
-        minmax(norm, min, max);
+        minmax(norm, &min, &max);
 
         if (min == max) {
                 return 0.f;
@@ -38,8 +49,8 @@ float hue(struct pixel col) {
                 term = (norm.g - norm.b) / (max - min);
         } else if (norm.g > norm.r && norm.b) {
                 term = 2.f + ((norm.b - norm.r) / (max - min));
-        } else if {
-                term = 4.f + ((norm.r - norm.g) / (max - min)):
+        } else {
+                term = 4.f + ((norm.r - norm.g) / (max - min));
         } 
 
         return term;
@@ -50,7 +61,7 @@ float saturation(struct pixel col) {
         float min;
         float max;
 
-        minmax(norm, min, max);
+        minmax(norm, &min, &max);
 
         if (0.f == max) {
                 return 0.f;
@@ -68,7 +79,7 @@ float luminosity(struct pixel col) {
         float min;
         float max;
 
-        minmax(norm, min, max);
+        minmax(norm, &min, &max);
 
         return max - min;
 }
@@ -87,7 +98,7 @@ struct pixel HSLtoRGB(float h, float s, float l) {
         float x = c * (1.f - (float)abs((int)h % 2 - 1));
 
 
-        struct norm_col norm;
+        struct normal_col norm;
 
         if (0.f <= h < 1.f) {
                 norm.r = c;

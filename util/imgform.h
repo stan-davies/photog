@@ -1,6 +1,9 @@
 #ifndef IMGFORM_H
 #define IMGFORM_H
 
+#include "math.h"
+#include "stdlib.h"
+
 #define DIM_LNN 1
 #define DAT_BEG 3
 
