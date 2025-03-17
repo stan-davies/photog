@@ -1,39 +1,49 @@
 #include "sort.h"
 
-void sort_process(struct image *i) {
+void sort_process(struct img *i) {
         struct px_ref *refs = calloc(i->w * i->h, sizeof(struct px_ref));
 
         struct px_ref curr;
+        printf("referise!\n");
         for (int p = 0; p < i->w * i->h; ++p) {
+                printf("\r%d", p);
                 curr.index = p;
                 curr.lum = luminosity(i->data[p]);
                 refs[p] = curr;
         }
 
         int p_max;
-        int acc = 0;
+        printf("\nlets go!\n");
         for (int r = 0; r < i->h; ++r) {
-                p_max = rand() % 105 + 55; 
-                if (i->w - acc < p) {
-                        p_max = i->w - acc;
-                }
-                acc += p_max;
+                printf("\r%d", r);
+                int acc = 0;
+                int keep = TRUE;
+                while (keep) {
+                        p_max = rand() % (100 - 50 + 1) + 50; 
+                        if (i->w - acc < p_max) {
+                                printf("BREAK");
+                                p_max = i->w - acc;
+                                keep = FALSE;
+                        }
+                        acc += p_max;
 
-                struct px_refs *chunk = calloc(p_max, sizeof(struct px_ref)); 
+                        struct px_ref *chunk = calloc(p_max, sizeof(struct px_ref)); 
 
-                for (int p = 0; p < p_max; ++p) {
-                        chunk[p] = refs[r * i->w + acc + p];
-                }
+                        for (int p = 0; p < p_max; ++p) {
+                                chunk[p] = refs[r * i->w + acc + p];
+                        }
 
-                sort_pixels(&chunk, p_max);
+                        sort_pixels(&chunk, p_max);
 
-                for (int p = 0; p < p_max; ++p) {
-                        refs[r * i->w + acc + p] = chunk[p];
-                }
+                        for (int p = 0; p < p_max; ++p) {
+                                refs[r * i->w + acc + p] = chunk[p];
+                        }
                 
-                free(chunk);
-                chunk = NULL;
+                        free(chunk);
+                        chunk = NULL;
+                }
         }
+        printf("\n");
 
 
         struct img new_i;
@@ -50,6 +60,7 @@ void sort_process(struct image *i) {
 void sort_pixels(struct px_ref **chunk, int pxs) {
         struct px_ref tmp;
         int swap_made;
+        int beg = (*chunk)[0].index;
         do {
                 swap_made = FALSE;
                 for (int p = 0; p < pxs - 1; ++p) {
@@ -60,5 +71,11 @@ void sort_pixels(struct px_ref **chunk, int pxs) {
                                 swap_made = TRUE;
                         }
                 }
-        } while (!swap_made);
+        } while (swap_made);
+
+/*
+        for (int p = 0; p < pxs; ++p) {
+                (*chunk)[p].index = beg + pxs - p - 1;
+        }
+        */
 }

@@ -1,6 +1,6 @@
 CMD = gcc
 
-FILES = main.c util/ppmio.c util/imgform.c reshape/reshape.c 
+FILES = main.c util/ppmio.c util/imgform.c sort/sort.c 
 
 INC = -I .
 

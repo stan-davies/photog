@@ -1,7 +1,11 @@
 #ifndef RESIZE_H
 #define RESIZE_H
 
+#include <stdlib.h>
+#include <time.h>
 #include "util/imgform.h"
+
+#define CUTOFF 30
 
 struct rect {
         int x;
