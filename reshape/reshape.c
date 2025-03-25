@@ -1,113 +1,92 @@
 #include "reshape.h"
 
 void reshape_process(struct img *i) {
-        struct square *shapes = calloc(MAX_SQ, sizeof(struct square));
-        int s = 0;
-
-        for (int m = 0; m < SAMPLES; ++m) {
-                make_squares(*i, &shapes, &s);
-        }
-        
-        printf("s %d\n", s);
-        int x;
-        int y;
-        for (int p = 0; p < i->w * i->h; ++p) {
-                struct square lrg; 
-                lrg.r = 10000000;
-                lrg.col.r = -1.f;
-                for (int j = 0; j < s; ++j) {
-                        x = p % i->w;
-                        y = p / i->w;
-                        if (coll(shapes[j], x, y) && shapes[j].r < lrg.r) {
-                                lrg = shapes[j];
-                        }
-                }
-
-                if (lrg.col.r < 0.f) {
-                        continue;
-                }
-
-                i->data[p] = lrg.col;
-        }
-}
-
-void make_squares(struct img i, struct square **shapes, int *s) {
-        int          p   = 0;
-        int          r   = 0;
-        float        sat = 0.f;
-        float        lum = 0.f;
-        int          esc;
-        int          rds;
-        struct pixel col;
-        struct square sq;
-
+        struct rect whole = { 0, 0, i->w, i->h };
         srand(time(NULL));
-        
-        while (p < i.w * i.h && *s < MAX_SQ) {
-                r += rand() % (50 - 20 + 1) + 20;
-                p  = i.w * r + (rand() % (1000 - 20 + 1) + 20);
-//                p = i.w * r + (rand() % (4 - 1 + 1) + 1) * 200;
+        quadrise(i, whole);
+}
 
-                col = i.data[p];
-                sat = saturation(col);
-                lum = luminosity(col);
-                if (sat > MIN_SAT) {
-                        rds = rad(sat);
-                } else if (lum > MIN_LUM) {
-                        rds = rad(lum);
+void quadrise(struct img *i, struct rect parent) {
+        struct rect child;
+        int hdiv;
+        int vdiv;
+        int s = select_div(parent.w, parent.h, &vdiv, &hdiv);
+        struct pixel col;
+        if (0 == s) {
+                return;
+        } else if (s < 0) {
+                col = pick_sat(*i, child);
+                clear_quad(i, child, col);
+                return;
+        }
+
+        int d = log2f((float)i->h) - log2f((float)parent.h);
+
+        for (int q = 0; q < 4; ++q) {
+                if (q % 2 == 0) {
+                        child.w = hdiv;
+                        child.x = parent.x;
                 } else {
-                        continue;
+                        child.w = parent.w - hdiv;
+                        child.x = parent.x + hdiv;
                 }
-
-                sq.x = p % i.w;
-                sq.y = p / i.w;
-                sq.r = rds;
-                sq.col = saturate(col);
-                esc = FALSE;
-                for (int q = 0; q < *s; ++q) {
-                        if (overlap((*shapes)[q], sq)) {
-                                esc = TRUE;
-                                break;
-                        }
+                if (q / 2 == 0) {
+                        child.h = vdiv;
+                        child.y = parent.y;
+                } else {
+                        child.h = parent.h - vdiv;
+                        child.y = parent.y + vdiv;
                 }
-                if (!esc) {
-                        (*shapes)[*s] = sq;
-                        (*s)++;
+                if (rand() % 100 + 1 > (int)powf(d, 1.7) + 15) {
+                        quadrise(i, child);
+                } else {
+                        col = pick_sat(*i, child);
+                        clear_quad(i, child, col);
                 }
         }
 }
 
-int coll(struct square sq, int x, int y) {
-        if (x < sq.x - sq.r || x > sq.x + sq.r) {
-                return FALSE;
+struct pixel pick_sat(struct img i, struct rect region) {
+        struct pixel col;
+        float max_sat = 0.f;
+        float cur_sat;
+        int p;
+        for (int o = 0; o < region.w * region.h; ++o) {
+                p = reg_to_img(i, region, o);
+                cur_sat = saturation(i.data[p]);
+                if (cur_sat > max_sat) {
+                        max_sat = cur_sat;
+                        col = i.data[p];
+                }
         }
-        if (y < sq.y - sq.r || y > sq.y + sq.r) {
-                return FALSE;
+        return col;
+}
+                
+void clear_quad(struct img *i, struct rect region, struct pixel col) {
+        for (int o = 0; o < region.w * region.h; ++o) {
+                i->data[reg_to_img(*i, region, o)] = col;
         }
-        return TRUE;
 }
 
-int overlap(struct square s1, struct square s2) {
-        int r = 2 * s1.r ? s1.r > s2.r : 2 * s2.r;
-        if (abs(s1.x - s2.x) < r && abs(s1.y - s2.y) < r) {
-                return TRUE;
-        }
-        return FALSE;
+int reg_to_img(struct img i, struct rect r, int p) {
+        return r.y * i.w + r.x + ((p / r.w) * i.w) + (p % r.w);
 }
 
-int rad(float sat) {
-//        return powf(2.f, 0.07f * (100.f * sat)) + 30.f;
-//        return powf(2.f, 0.08f * (100.f * sat)) + 5.f;
-        return (powf(2.f * sat - 0.2f, 3.f) + 1.f) * 20.f;
-}
-
-struct pixel saturate(struct pixel px) {
-        float h = hue(px);
-        float s = saturation(px);
-        float l = luminosity(px); 
-        s *= 1.5f;
-        if (s > 1.f) {
-                s = 1.f;
-        }
-        return HSLtoRGB(h, s, l);
+int select_div(int pw, int ph, int *vdiv, int *hdiv) {
+        int v;
+        int h;
+        float scl;
+        int c = 0;
+        do {
+                v = ph / (rand() % (6 - 2 + 1) + 2);
+                h = pw / (rand() % (6 - 2 + 1) + 2);
+                scl = h / v;
+                c++;
+                if (c > 50) {
+                        return -1;
+                }
+        } while (v < 1 || h < 1 || scl > MAX_RAT || scl < 1.f / MAX_RAT);
+        *vdiv = v;
+        *hdiv = h;
+        return h > 1 && v > 1;
 }

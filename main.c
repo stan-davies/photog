@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "util/ppmio.h"
-#include "sort/sort.h"
+#include "reshape/reshape.h"
 
 #define MAX_PATH_LEN 32
 
@@ -9,13 +9,13 @@ int main(int argc, char **argv) {
 
         printf("get going!\n");
         
-        if (!read_img("b.ppm", &image)) {
+        if (!read_img("r.ppm", &image)) {
                 printf("Could not read.\n");
         }
 
         printf("read...\n");
 
-        sort_process(&image);
+        reshape_process(&image);
 
         printf("processed\n");
         
