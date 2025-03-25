@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "util/ppmio.h"
-#include "reshape/reshape.h"
+#include "stretch/stretch.h"
 
 #define MAX_PATH_LEN 32
 
@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
         printf("read...\n");
 
-        reshape_process(&image);
+        stretch_process(&image);
 
         printf("processed\n");
         
